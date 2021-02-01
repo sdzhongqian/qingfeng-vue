@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE configuration PUBLIC "-//mybatis.org//DTD Config 3.0//EN" "http://mybatis.org/dtd/mybatis-3-config.dtd">
+<configuration>
+    <properties>
+
+        <!--数据库类型：mysql、oracle-->
+        <property name="sqlType" value="mysql"/>
+
+        <!--Mysql基础参数-->
+        <property name="sqlOrder" value="a.order_by+0"/>
+        <property name="sqlBOrder" value="b.order_by+0"/>
+        <property name="sqlAreaParam1" value="IF(b.cnum is null||b.cnum=0,'false','true')"/>
+        <property name="sqlRoleParam1" value="IF(b.cnum is null||b.cnum=0,'false','true')"/>
+        <property name="sqlUserPropertyParam1" value="IF(b.id is null||b.id='','false','true')"/>
+        <property name="sqlOrganizeParam1" value="if(a.org_cascade=#{org_cascade},'0',a.parent_id)"/>
+
+        <property name="auth" value="if(a.org_cascade=#{org_cascade},'0',a.parent_id)"/>
+
+
+        <!--Oracle基础参数-->
+        <!--<property name="sqlOrder" value="a.order_by"/>-->
+        <!--<property name="sqlBOrder" value="b.order_by"/>-->
+        <!--<property name="sqlAreaParam1" value="decode(b.cnum,'0','false',null,'false','true')"/>-->
+        <!--<property name="sqlRoleParam1" value="decode(b.cnum,'0','false',null,'false','true')"/>-->
+        <!--<property name="sqlUserPropertyParam1" value="decode(b.id,'','false',null,'false','true')"/>-->
+        <!--<property name="sqlOrganizeParam1" value="decode(a.org_cascade,#{org_cascade},'0',a.parent_id)"/>-->
+
+    </properties>
+
+
+    <settings>
+        <setting name="logImpl" value="LOG4J2"/>
+        <!--<setting name="logImpl" value="STDOUT_LOGGING"/>-->
+    </settings>
+
+    <plugins>
+        <!-- sql语句打印拦截器 -->
+        <plugin interceptor="com.qingfeng.framework.servlet.SqlCostInterceptor" />
+    </plugins>
+
+</configuration>

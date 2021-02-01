@@ -1,0 +1,750 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.qingfeng.system.dao.UserDao">
+
+	<!--数据权限-->
+	<sql id="authPageSql">
+		<!-- 数据权限 -->
+		<if test="(pd.auth_organize_ids == null or pd.auth_organize_ids.size == 0) and (pd.auth_user != null and pd.auth_user != '')">
+			and a.create_user=#{pd.auth_user}
+		</if>
+		<if test="pd.auth_organize_ids != null and pd.auth_organize_ids.size > 0">
+			and (a.create_user=#{pd.auth_user} or a.create_organize in
+			<foreach collection="pd.auth_organize_ids" item="organize_id" open="(" separator="," close=")">
+				#{organize_id}
+			</foreach>
+			)
+		</if>
+	</sql>
+	<sql id="authPdSql">
+		<!-- 数据权限 -->
+		<if test="(auth_organize_ids == null or auth_organize_ids.size == 0) and (auth_user != null and auth_user != '')">
+			and a.create_user=#{auth_user}
+		</if>
+		<if test="auth_organize_ids != null and auth_organize_ids.size > 0">
+			and (a.create_user=#{auth_user} or a.create_organize in
+			<foreach collection="auth_organize_ids" item="organize_id" open="(" separator="," close=")">
+				#{organize_id}
+			</foreach>
+			)
+		</if>
+	</sql>
+
+	<!--查询分页列表-->
+	<select id="findListPage" parameterType="com.qingfeng.util.Page" resultType="com.qingfeng.util.PageData">
+		select
+			a.id as "id",
+			a.type as "type",
+			a.login_name as "login_name",
+			a.login_password as "login_password",
+			a.name as "name",
+			a.sex as "sex",
+			a.phone as "phone",
+			a.email as "email",
+			a.birth_date as "birth_date",
+			a.live_address as "live_address",
+			a.birth_address as "birth_address",
+			a.head_address as "head_address",
+			a.motto as "motto",
+			a.status as "status",
+			a.order_by as "order_by",
+			a.open_id as "open_id",
+			a.init_password as "init_password",
+			a.pwd_error_num as "pwd_error_num",
+			a.pwd_error_time as "pwd_error_time",
+			a.theme_id as "theme_id",
+			a.last_login_time as "last_login_time",
+			a.depart_leader as "depart_leader",
+			a.direct_leader as "direct_leader",
+			a.branch_leader as "branch_leader",
+			a.remark as "remark",
+			a.create_time as "create_time",
+			a.create_user as "create_user",
+			b.type as "uorg_type"
+			from system_user a
+			left join system_user_organize b on a.id=b.user_id
+			where a.type='1'
+			<if test="pd.name != null and pd.name != ''">
+				and a.name like concat('%',concat(#{pd.name},'%'))
+			</if>
+			<if test="pd.login_name != null and pd.login_name != ''">
+				and a.login_name like concat('%',concat(#{pd.login_name},'%'))
+			</if>
+			<if test="pd.phone != null and pd.phone != ''">
+				and a.phone like concat('%',concat(#{pd.phone},'%'))
+			</if>
+			<if test="pd.email != null and pd.email != ''">
+				and a.email like concat('%',concat(#{pd.email},'%'))
+			</if>
+			<if test="pd.sex != null and pd.sex != ''">
+				and a.sex = #{pd.sex}
+			</if>
+			<if test="pd.status != null and pd.status != ''">
+				and a.status = #{pd.status}
+			</if>
+			<if test="pd.organize_id != null and pd.organize_id != ''">
+				and b.organize_id = #{pd.organize_id}
+			</if>
+			<!--查询在线人数-->
+			<if test="pd.token_refresh_time != null and pd.token_refresh_time != ''">
+				and (a.token_refresh_time <![CDATA[ <= ]]> #{pd.token_refresh_time} and a.token is not null)
+			</if>
+			<if test="pd.ipaddr != null and pd.ipaddr != ''">
+				and a.ipaddr like concat('%',concat(#{pd.ipaddr},'%'))
+			</if>
+			<if test="pd.iprealaddr != null and pd.iprealaddr != ''">
+				and a.iprealaddr like concat('%',concat(#{pd.iprealaddr},'%'))
+			</if>
+			<include refid="authPageSql"></include>
+			order by b.type+0 asc, a.order_by+0 asc , a.create_time desc
+	</select>
+
+    <!--查询分页数量-->
+    <select id="findListSize" parameterType="com.qingfeng.util.Page" resultType="Integer">
+        select
+        count(*)
+        from system_user a
+		left join system_user_organize b on a.id=b.user_id
+        where a.type='1'
+		<if test="pd.name != null and pd.name != ''">
+			and a.name like concat('%',concat(#{pd.name},'%'))
+		</if>
+		<if test="pd.login_name != null and pd.login_name != ''">
+			and a.login_name like concat('%',concat(#{pd.login_name},'%'))
+		</if>
+		<if test="pd.phone != null and pd.phone != ''">
+			and a.phone like concat('%',concat(#{pd.phone},'%'))
+		</if>
+		<if test="pd.email != null and pd.email != ''">
+			and a.email like concat('%',concat(#{pd.email},'%'))
+		</if>
+		<if test="pd.sex != null and pd.sex != ''">
+			and a.sex = #{pd.sex}
+		</if>
+		<if test="pd.status != null and pd.status != ''">
+			and a.status = #{pd.status}
+		</if>
+		<if test="pd.organize_id != null and pd.organize_id != ''">
+			and b.organize_id = #{pd.organize_id}
+		</if>
+		<!--查询在线人数-->
+		<if test="pd.token_refresh_time != null and pd.token_refresh_time != ''">
+			and (a.token_refresh_time <![CDATA[ <= ]]> #{pd.token_refresh_time} and a.token is not null)
+		</if>
+		<if test="pd.ipaddr != null and pd.ipaddr != ''">
+			and a.ipaddr like concat('%',concat(#{pd.ipaddr},'%'))
+		</if>
+		<if test="pd.iprealaddr != null and pd.iprealaddr != ''">
+			and a.iprealaddr like concat('%',concat(#{pd.iprealaddr},'%'))
+		</if>
+		<include refid="authPageSql"></include>
+    </select>
+
+    <!--查询列表-->
+    <select id="findList" parameterType="com.qingfeng.util.PageData" resultType="com.qingfeng.util.PageData">
+        select
+			a.id as "id",
+			a.type as "type",
+			a.login_name as "login_name",
+			a.login_password as "login_password",
+			a.name as "name",
+			a.sex as "sex",
+			a.phone as "phone",
+			a.email as "email",
+			a.birth_date as "birth_date",
+			a.live_address as "live_address",
+			a.birth_address as "birth_address",
+			a.head_address as "head_address",
+			a.motto as "motto",
+			a.status as "status",
+			a.order_by as "order_by",
+			a.open_id as "open_id",
+			a.init_password as "init_password",
+			a.pwd_error_num as "pwd_error_num",
+			a.pwd_error_time as "pwd_error_time",
+			a.last_login_time as "last_login_time",
+			a.theme_id as "theme_id",
+			a.depart_leader as "depart_leader",
+			a.direct_leader as "direct_leader",
+			a.branch_leader as "branch_leader",
+			a.remark as "remark",
+			a.create_time as "create_time",
+			a.create_user as "create_user",
+			a.create_organize as "create_organize",
+			a.update_user as "update_user",
+			a.update_time as "update_time"
+			from system_user a
+			left join system_user_organize b on a.id=b.user_id
+			where 1=1
+			<if test="name != null and name != ''">
+				and a.name like concat('%',concat(#{name},'%'))
+			</if>
+			<if test="login_name != null and login_name != ''">
+				and a.login_name like concat('%',concat(#{login_name},'%'))
+			</if>
+			<if test="phone != null and phone != ''">
+				and a.phone like concat('%',concat(#{phone},'%'))
+			</if>
+			<if test="email != null and email != ''">
+				and a.email like concat('%',concat(#{email},'%'))
+			</if>
+			<if test="sex != null and sex != ''">
+				and a.sex = #{sex}
+			</if>
+			<if test="type != null and type != ''">
+				and a.type = #{type}
+			</if>
+			<if test="status != null and status != ''">
+				and a.status = #{status}
+			</if>
+			<if test="organize_id != null and organize_id != ''">
+				and b.organize_id = #{organize_id}
+			</if>
+			<include refid="authPdSql"></include>
+			order by a.order_by+0 asc , a.create_time desc
+    </select>
+
+	<!--查询用户信息判断登录等情况-->
+	<select id="findUserList" parameterType="com.qingfeng.util.PageData" resultType="com.qingfeng.util.PageData">
+		select
+			a.id as "id",
+			a.type as "type",
+			a.login_name as "login_name",
+			a.login_password as "login_password",
+			a.name as "name",
+			a.sex as "sex",
+			a.phone as "phone",
+			a.email as "email"
+			from system_user a
+			where 1=1
+			<if test="query_login_name != null and query_login_name.size > 0">
+				and a.login_name in
+				<foreach collection="query_login_name" item="login_name" open="(" separator="," close=")">
+					#{login_name}
+				</foreach>
+			</if>
+			<if test="query_phone != null and query_phone.size > 0">
+				and a.phone in
+				<foreach collection="query_phone" item="phone" open="(" separator="," close=")">
+					#{phone}
+				</foreach>
+			</if>
+			order by a.order_by+0 asc , a.create_time desc
+	</select>
+
+	<!--查询详情-->
+	<select id="findInfo" parameterType="com.qingfeng.util.PageData" resultType="com.qingfeng.util.PageData">
+		select
+			a.id as "id",
+			a.type as "type",
+			a.login_name as "login_name",
+			a.login_password as "login_password",
+			a.name as "name",
+			a.sex as "sex",
+			a.phone as "phone",
+			a.email as "email",
+			a.birth_date as "birth_date",
+			a.live_address as "live_address",
+			a.birth_address as "birth_address",
+			a.head_address as "head_address",
+			a.motto as "motto",
+			a.status as "status",
+			a.order_by as "order_by",
+			a.open_id as "open_id",
+			a.init_password as "init_password",
+			a.pwd_error_num as "pwd_error_num",
+			a.pwd_error_time as "pwd_error_time",
+			a.last_login_time as "last_login_time",
+			a.theme_id as "theme_id",
+			a.depart_leader as "depart_leader",
+			a.direct_leader as "direct_leader",
+			a.branch_leader as "branch_leader",
+			a.remark as "remark",
+			a.create_time as "create_time",
+			a.create_user as "create_user",
+			a.create_organize as "create_organize",
+			a.update_user as "update_user",
+			a.update_time as "update_time"
+			from system_user a
+			where a.id=#{id}
+	</select>
+	
+	<!--保存-->
+	<insert id="save" parameterType="com.qingfeng.util.PageData">
+		insert into system_user (id,type,login_name,login_password,name,sex,phone,email,birth_date,live_address,birth_address,head_address,motto,status,order_by,open_id,init_password,pwd_error_num,pwd_error_time,remark,create_time,create_user,create_organize,update_user,update_time,theme_id,last_login_time,depart_leader,direct_leader,branch_leader)
+			values
+			(#{id},#{type,jdbcType=VARCHAR},#{login_name,jdbcType=VARCHAR},#{login_password,jdbcType=VARCHAR},#{name,jdbcType=VARCHAR},#{sex,jdbcType=VARCHAR},#{phone,jdbcType=VARCHAR},#{email,jdbcType=VARCHAR},#{birth_date,jdbcType=VARCHAR},#{live_address,jdbcType=VARCHAR},#{birth_address,jdbcType=VARCHAR},#{head_address,jdbcType=VARCHAR},#{motto,jdbcType=VARCHAR},#{status,jdbcType=VARCHAR},#{order_by,jdbcType=VARCHAR},#{open_id,jdbcType=VARCHAR},#{init_password,jdbcType=VARCHAR},#{pwd_error_num,jdbcType=VARCHAR},#{pwd_error_time,jdbcType=VARCHAR},#{remark,jdbcType=VARCHAR},#{create_time,jdbcType=VARCHAR},#{create_user,jdbcType=VARCHAR},#{create_organize,jdbcType=VARCHAR},#{update_user,jdbcType=VARCHAR},#{update_time,jdbcType=VARCHAR},#{theme_id,jdbcType=VARCHAR},#{last_login_time,jdbcType=VARCHAR},#{depart_leader,jdbcType=VARCHAR},#{direct_leader,jdbcType=VARCHAR},#{branch_leader,jdbcType=VARCHAR})
+	</insert>
+	
+	<!--更新-->
+	<update id="update" parameterType="com.qingfeng.util.PageData">
+		update system_user set
+			<if test="type != null">type=#{type},</if>
+			<if test="login_name != null">login_name=#{login_name},</if>
+			<if test="login_password != null">login_password=#{login_password},</if>
+			<if test="name != null">name=#{name},</if>
+			<if test="sex != null">sex=#{sex},</if>
+			<if test="phone != null">phone=#{phone},</if>
+			<if test="email != null">email=#{email},</if>
+			<if test="birth_date != null">birth_date=#{birth_date},</if>
+			<if test="live_address != null">live_address=#{live_address},</if>
+			<if test="birth_address != null">birth_address=#{birth_address},</if>
+			<if test="head_address != null">head_address=#{head_address},</if>
+			<if test="motto != null">motto=#{motto},</if>
+			<if test="status != null">status=#{status},</if>
+			<if test="order_by != null">order_by=#{order_by},</if>
+			<if test="open_id != null">open_id=#{open_id},</if>
+			<if test="last_login_time != null">last_login_time=#{last_login_time},</if>
+			<if test="browser != null">browser=#{browser},</if>
+			<if test="os != null">os=#{os},</if>
+			<if test="ipaddr != null">ipaddr=#{ipaddr},</if>
+			<if test="iprealaddr != null">iprealaddr=#{iprealaddr},</if>
+			<if test="init_password != null">init_password=#{init_password},</if>
+			<if test="pwd_error_num != null">pwd_error_num=#{pwd_error_num},</if>
+			<if test="pwd_error_time != null">pwd_error_time=#{pwd_error_time},</if>
+			<if test="theme_id != null">theme_id=#{theme_id},</if>
+			<if test="depart_leader != null">depart_leader=#{depart_leader},</if>
+			<if test="direct_leader != null">direct_leader=#{direct_leader},</if>
+			<if test="branch_leader != null">branch_leader=#{branch_leader},</if>
+			<if test="token != null">token=#{token},</if>
+			<if test="token_refresh_time != null">token_refresh_time=#{token_refresh_time},</if>
+			<if test="remark != null">remark=#{remark},</if>
+			<if test="update_user != null">update_user=#{update_user},</if>
+			update_time=#{update_time}
+			where id=#{id}
+	</update>
+
+    <!--删除-->
+    <delete id="del" parameterType="String">
+        delete from system_user where id in
+        <foreach collection="array" item="id" open="(" separator="," close=")">
+			#{id}
+        </foreach>
+    </delete>
+
+	<!--用户组织信息保存-->
+	<insert id="saveUserOrganize" parameterType="com.qingfeng.util.PageData">
+		insert into system_user_organize (id,user_id,organize_id,type,position,authOrgIds,authParams,authOrgCascade,use_status,order_by,create_user,create_time,update_time)
+			values
+			(#{id},#{user_id,jdbcType=VARCHAR},#{organize_id,jdbcType=VARCHAR},#{type,jdbcType=VARCHAR},#{position,jdbcType=VARCHAR},#{authOrgIds,jdbcType=VARCHAR},#{authParams,jdbcType=VARCHAR},#{authOrgCascade,jdbcType=VARCHAR},#{use_status,jdbcType=VARCHAR},#{order_by,jdbcType=VARCHAR},#{create_user,jdbcType=VARCHAR},#{create_time,jdbcType=VARCHAR},#{update_time,jdbcType=VARCHAR})
+	</insert>
+
+	<!--用户组织信息查询-->
+	<select id="findUserOrganize" parameterType="com.qingfeng.util.PageData" resultType="com.qingfeng.util.PageData">
+		select
+		a.id as "id",
+		a.user_id as "user_id",
+		a.organize_id as "organize_id",
+		a.type as "type",
+		a.position as "position",
+		a.authOrgIds as "authOrgIds",
+		a.authParams as "authParams",
+		a.authOrgCascade as "authOrgCascade",
+		a.use_status as "use_status",
+		a.order_by as "order_by",
+		a.create_user as "create_user",
+		a.create_time as "create_time",
+		a.update_time as "update_time",
+		b.name as "organize_name"
+		from system_user_organize a
+		left join system_organize b on a.organize_id = b.id
+		where 1=1
+		<if test="user_id != null and user_id != ''">
+			and a.user_id = #{user_id}
+		</if>
+		<if test="organize_id != null and organize_id != ''">
+			and a.organize_id = #{organize_id}
+		</if>
+		order by a.type+0 asc, a.order_by+0 asc , a.create_time desc
+	</select>
+
+
+	<select id="findUserOrganizeInfo" parameterType="com.qingfeng.util.PageData" resultType="com.qingfeng.util.PageData">
+		select
+		a.id as "id",
+		a.user_id as "user_id",
+		a.organize_id as "organize_id",
+		a.type as "type",
+		a.position as "position",
+		a.authOrgIds as "authOrgIds",
+		a.authParams as "authParams",
+		a.authOrgCascade as "authOrgCascade",
+		a.use_status as "use_status",
+		a.order_by as "order_by",
+		a.create_user as "create_user",
+		a.create_time as "create_time",
+		a.update_time as "update_time",
+		b.name as "organize_name",
+		b.org_cascade as "org_cascade"
+		from system_user_organize a
+		left join system_organize b on a.organize_id = b.id
+		where 1=1
+		<if test="user_id != null and user_id != ''">
+			and a.user_id = #{user_id}
+		</if>
+		<if test="organize_id != null and organize_id != ''">
+			and a.organize_id = #{organize_id}
+		</if>
+		order by a.use_status+0 asc,a.order_by+0 asc,a.type+0 asc
+		limit 1
+	</select>
+
+	<!--删除用户组织信息-->
+	<delete id="delUserOrganize" parameterType="com.qingfeng.util.PageData">
+		delete from system_user_organize where 1=1
+		<if test="id != null and id != ''">
+			and id = #{id}
+		</if>
+		<if test="user_ids != null and user_ids.size > 0">
+			and user_id in
+			<foreach collection="user_ids" item="user_id" open="(" separator="," close=")">
+				#{user_id}
+			</foreach>
+		</if>
+		<if test="organize_ids != null and organize_ids.size > 0">
+			and organize_id in
+			(
+				select a.id from (
+				<foreach collection="organize_ids" item="id" open="(" separator="union all" close=")">select id from system_organize
+					where org_cascade like
+					concat('%',concat((select a.org_cascade from (select id,org_cascade from system_organize) a where a.id
+					in (
+					#{id}
+					) ),'%'))
+				</foreach>
+				) a
+			)
+		</if>
+	</delete>
+
+	<!--更新用户组织信息-->
+	<update id="updateUserOrganize" parameterType="com.qingfeng.util.PageData">
+		update system_user_organize set
+		<if test="user_id != null">user_id=#{user_id},</if>
+		<if test="organize_id != null">organize_id=#{organize_id},</if>
+		<if test="type != null">type=#{type},</if>
+		<if test="position != null">position=#{position},</if>
+		<if test="authOrgIds != null">authOrgIds=#{authOrgIds},</if>
+		<if test="authParams != null">authParams=#{authParams},</if>
+		<if test="authOrgCascade != null">authOrgCascade=#{authOrgCascade},</if>
+		<if test="use_status != null">use_status=#{use_status},</if>
+		<if test="order_by != null">order_by=#{order_by},</if>
+		update_time=#{update_time}
+		where id=#{id}
+	</update>
+
+
+	<!--更新用户组织信息-->
+	<update id="updateAuthForParam" parameterType="com.qingfeng.util.PageData">
+		update system_user_organize set
+		<if test="authOrgIds != null">authOrgIds=#{authOrgIds},</if>
+		<if test="authParams != null">authParams=#{authParams},</if>
+		<if test="authOrgCascade != null">authOrgCascade=#{authOrgCascade},</if>
+		update_time=#{update_time}
+		where user_id = #{user_id} and organize_id = #{organize_id}
+	</update>
+
+
+	<select id="findUserRoleList" parameterType="com.qingfeng.util.PageData" resultType="com.qingfeng.util.PageData">
+		select
+		a.id as "id",
+		a.type as "type",
+		a.name as "name",
+		a.short_name as "short_name",
+		a.status as "status"
+		from system_role a
+		left join system_user_role b on a.id=b.role_id
+		where b.user_id=#{user_id} and a.status='0'
+		union all
+		select
+		a.id as "id",
+		a.type as "type",
+		a.name as "name",
+		a.short_name as "short_name",
+		a.status as "status"
+		from system_role a
+		left join system_organize_role b on a.id=b.role_id
+		where a.status='0' and b.organize_id in (
+		select organize_id from system_user_organize where user_id=#{user_id}
+		<if test="organize_id != null and organize_id != ''">
+			and organize_id = #{organize_id}
+		</if>
+		)
+	</select>
+
+
+	<!--删除用户角色-->
+	<delete id="delUserRole" parameterType="com.qingfeng.util.PageData">
+		delete from system_user_role where 1=1
+		<if test="user_id != null and user_id != ''">
+			and user_id = #{user_id}
+		</if>
+		<if test="user_ids != null and user_ids.size > 0">
+			and user_id in
+			<foreach collection="user_ids" item="user_id" open="(" separator="," close=")">
+				#{user_id}
+			</foreach>
+		</if>
+		<if test="role_ids != null and role_ids.size > 0">
+			and role_id in
+			<foreach collection="role_ids" item="role_id" open="(" separator="," close=")">
+				#{role_id}
+			</foreach>
+		</if>
+	</delete>
+
+
+	<!--批量保存-->
+	<insert id="saveUserRole" useGeneratedKeys="false">
+		insert into system_user_role
+		(id,user_id,role_id,create_user,create_time,update_time)
+		<foreach collection="list" item="item" separator="UNION ALL">
+			select
+			#{item.id,jdbcType=VARCHAR},#{item.user_id,jdbcType=VARCHAR},#{item.role_id,jdbcType=VARCHAR},#{item.create_user,jdbcType=VARCHAR},#{item.create_time,jdbcType=VARCHAR},#{item.update_time,jdbcType=VARCHAR}
+			from dual where not exists(select user_id,role_id from system_user_role where
+			user_id = #{item.user_id} and role_id = #{item.role_id})
+		</foreach>
+	</insert>
+
+
+
+	<delete id="delUserGroup" parameterType="com.qingfeng.util.PageData">
+		delete from system_user_group where 1=1
+		<if test="group_ids != null and group_ids.size > 0">
+			and group_id in
+			<foreach collection="group_ids" item="group_id" open="(" separator="," close=")">
+				#{group_id}
+			</foreach>
+		</if>
+		<if test="user_ids != null and user_ids.size > 0">
+			and user_id in
+			<foreach collection="user_ids" item="user_id" open="(" separator="," close=")">
+				#{user_id}
+			</foreach>
+		</if>
+	</delete>
+
+
+	<!--更新用户组织信息-->
+	<update id="updateUserOrgUseStatus" parameterType="com.qingfeng.util.PageData">
+		update system_user_organize set
+		<if test="use_status != null">use_status=#{use_status},</if>
+		update_time=#{update_time}
+		where 1=1
+		<if test="user_id != null and user_id != ''">
+			and user_id = #{user_id}
+		</if>
+		<if test="organize_id != null and organize_id != ''">
+			and organize_id = #{organize_id}
+		</if>
+	</update>
+
+
+	<!--查询列表-->
+	<select id="findRoleUserList" parameterType="com.qingfeng.util.PageData" resultType="com.qingfeng.util.PageData">
+		select * from (
+			select
+			a.id as "id",
+			a.type as "type",
+			a.login_name as "login_name",
+			a.login_password as "login_password",
+			a.name as "name"
+			from system_user a
+			left join system_user_role b on a.id=b.user_id
+			where b.role_id = #{role_id}
+			union all
+			select
+			a.id as "id",
+			a.type as "type",
+			a.login_name as "login_name",
+			a.login_password as "login_password",
+			a.name as "name"
+			from system_user a
+			left join system_user_organize b on a.id=b.user_id
+			left join system_organize_role c on b.organize_id=c.organize_id
+			where c.role_id=#{role_id}
+		) a
+		group by a.id
+	</select>
+
+
+	<select id="findUserOnlineListPage" parameterType="com.qingfeng.util.Page" resultType="com.qingfeng.util.PageData">
+		select
+		a.id as "id",
+		a.type as "type",
+		a.login_name as "login_name",
+		a.login_password as "login_password",
+		a.name as "name",
+		a.sex as "sex",
+		a.phone as "phone",
+		a.email as "email",
+		a.birth_date as "birth_date",
+		a.live_address as "live_address",
+		a.birth_address as "birth_address",
+		a.head_address as "head_address",
+		a.motto as "motto",
+		a.status as "status",
+		a.order_by as "order_by",
+		a.open_id as "open_id",
+		a.init_password as "init_password",
+		a.pwd_error_num as "pwd_error_num",
+		a.pwd_error_time as "pwd_error_time",
+		a.theme_id as "theme_id",
+		a.remark as "remark",
+		a.create_time as "create_time",
+		a.create_user as "create_user",
+		a.create_organize as "create_organize",
+		a.update_user as "update_user",
+		a.update_time as "update_time",
+		a.last_login_time as "last_login_time",
+		a.browser as "browser",
+		a.os as "os",
+		a.ipaddr as "ipaddr",
+		a.iprealaddr as "iprealaddr"
+		from system_user a
+		where 1=1
+		<if test="pd.userIds != null and pd.userIds.size > 0">
+			and a.id in
+			<foreach collection="pd.userIds" item="id" open="(" separator="," close=")">
+				#{id}
+			</foreach>
+		</if>
+		<if test="pd.name != null and pd.name != ''">
+			and a.name like concat('%',concat(#{pd.name},'%'))
+		</if>
+		<if test="pd.login_name != null and pd.login_name != ''">
+			and a.login_name like concat('%',concat(#{pd.login_name},'%'))
+		</if>
+		<if test="pd.ipaddr != null and pd.ipaddr != ''">
+			and a.ipaddr like concat('%',concat(#{pd.ipaddr},'%'))
+		</if>
+		<if test="pd.iprealaddr != null and pd.iprealaddr != ''">
+			and a.iprealaddr like concat('%',concat(#{pd.iprealaddr},'%'))
+		</if>
+		order by a.last_login_time desc, a.order_by+0 asc , a.create_time desc
+	</select>
+
+
+
+	<!--查询分页列表-->
+	<select id="findMyOrganizeListPage" parameterType="com.qingfeng.util.Page" resultType="com.qingfeng.util.PageData">
+		select
+		a.id as "id",
+		a.user_id as "user_id",
+		a.organize_id as "organize_id",
+		a.type as "type",
+		a.position as "position",
+		a.authOrgIds as "authOrgIds",
+		a.authParams as "authParams",
+		a.authOrgCascade as "authOrgCascade",
+		a.use_status as "use_status",
+		a.order_by as "order_by",
+		a.create_user as "create_user",
+		a.create_time as "create_time",
+		a.update_time as "update_time",
+		b.name as "organize_name"
+		from system_user_organize a
+		left join system_organize b on a.organize_id = b.id
+		where 1=1
+		<if test="pd.user_id != null and pd.user_id != ''">
+			and a.user_id = #{pd.user_id}
+		</if>
+		<if test="pd.organize_id != null and pd.organize_id != ''">
+			and a.organize_id = #{pd.organize_id}
+		</if>
+		order by a.type+0 asc, a.order_by+0 asc , a.create_time desc
+	</select>
+
+	<!--查询分页数量-->
+	<select id="findMyOrganizeListSize" parameterType="com.qingfeng.util.Page" resultType="Integer">
+		select
+		count(*)
+		from system_user_organize a
+		where 1=1
+		<if test="pd.user_id != null and pd.user_id != ''">
+			and a.user_id = #{pd.user_id}
+		</if>
+		<if test="pd.organize_id != null and pd.organize_id != ''">
+			and a.organize_id = #{pd.organize_id}
+		</if>
+	</select>
+
+
+	<!--清空token退出登录-->
+	<update id="updateForToken" parameterType="com.qingfeng.util.PageData">
+		update system_user set
+		token = '',
+		token_refresh_time=#{token_refresh_time},
+		update_time=#{update_time}
+		where token=#{token}
+	</update>
+
+
+	<!--查询分页列表-->
+	<select id="findOnLineListPage" parameterType="com.qingfeng.util.Page" resultType="com.qingfeng.util.PageData">
+		select
+		a.id as "id",
+		a.type as "type",
+		a.login_name as "login_name",
+		a.login_password as "login_password",
+		a.name as "name",
+		a.sex as "sex",
+		a.phone as "phone",
+		a.email as "email",
+		a.browser as "browser",
+		a.os as "os",
+		a.ipaddr as "ipaddr",
+		a.iprealaddr as "iprealaddr",
+		a.token_refresh_time as "token_refresh_time",
+		a.last_login_time as "last_login_time",
+		a.remark as "remark",
+		a.create_time as "create_time",
+		a.create_user as "create_user"
+		from system_user a
+		where 1=1
+		<if test="pd.name != null and pd.name != ''">
+			and a.name like concat('%',concat(#{pd.name},'%'))
+		</if>
+		<if test="pd.login_name != null and pd.login_name != ''">
+			and a.login_name like concat('%',concat(#{pd.login_name},'%'))
+		</if>
+		<!--查询在线人数-->
+		<if test="pd.token_refresh_time != null and pd.token_refresh_time != ''">
+			and (a.token_refresh_time <![CDATA[ >= ]]> #{pd.token_refresh_time} and a.token is not null)
+		</if>
+		<if test="pd.ipaddr != null and pd.ipaddr != ''">
+			and a.ipaddr like concat('%',concat(#{pd.ipaddr},'%'))
+		</if>
+		<if test="pd.iprealaddr != null and pd.iprealaddr != ''">
+			and a.iprealaddr like concat('%',concat(#{pd.iprealaddr},'%'))
+		</if>
+		order by a.last_login_time desc ,a.order_by+0 asc , a.create_time desc
+	</select>
+
+	<!--查询分页数量-->
+	<select id="findOnLineListSize" parameterType="com.qingfeng.util.Page" resultType="Integer">
+		select
+		count(*)
+		from system_user a
+		where 1=1
+		<if test="pd.name != null and pd.name != ''">
+			and a.name like concat('%',concat(#{pd.name},'%'))
+		</if>
+		<if test="pd.login_name != null and pd.login_name != ''">
+			and a.login_name like concat('%',concat(#{pd.login_name},'%'))
+		</if>
+		<!--查询在线人数-->
+		<if test="pd.token_refresh_time != null and pd.token_refresh_time != ''">
+			and (a.token_refresh_time <![CDATA[ >= ]]> #{pd.token_refresh_time} and a.token is not null)
+		</if>
+		<if test="pd.ipaddr != null and pd.ipaddr != ''">
+			and a.ipaddr like concat('%',concat(#{pd.ipaddr},'%'))
+		</if>
+		<if test="pd.iprealaddr != null and pd.iprealaddr != ''">
+			and a.iprealaddr like concat('%',concat(#{pd.iprealaddr},'%'))
+		</if>
+	</select>
+
+
+</mapper>

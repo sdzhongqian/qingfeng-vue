@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.qingfeng.common.dao.UploadDao">
+
+
+	<insert id="saveFile" parameterType="com.qingfeng.util.PageData">
+		insert into common_uploadFile (id,name,desnames,file_path,file_type,file_size,obj_id,child_obj_id,file_suffix,source,order_by,remark,create_user,create_organize,create_time,update_time)
+		values
+		(#{id},#{name},#{desnames},#{file_path},#{file_type},#{file_size},#{obj_id},#{child_obj_id},#{file_suffix},#{source},#{order_by},#{remark},#{create_user},#{create_organize},#{create_time},#{update_time})
+	</insert>
+
+
+	<delete id="delFile" parameterType="com.qingfeng.util.PageData">
+		delete from common_uploadFile where id = #{id}
+	</delete>
+
+	<delete id="delFileByObjId" parameterType="com.qingfeng.util.PageData">
+		delete from common_uploadFile where obj_id = #{obj_id}
+	</delete>
+
+	<update id="updateFile" parameterType="com.qingfeng.util.PageData">
+		update common_uploadFile set
+		<if test="obj_id != null and obj_id != '' ">
+			obj_id=#{obj_id},
+		</if>
+		<if test="child_obj_id != null and child_obj_id != '' ">
+			child_obj_id=#{child_obj_id},
+		</if>
+		update_time=#{update_time}
+		where id=#{id}
+	</update>
+
+
+	<select id="findFileList" parameterType="com.qingfeng.util.PageData" resultType="com.qingfeng.util.PageData">
+		select
+		a.id as "id",
+		a.name as "name",
+		a.desnames as "desnames",
+		a.file_path as "file_path",
+		a.file_type as "file_type",
+		a.file_size as "file_size",
+		a.obj_id as "obj_id",
+		a.child_obj_id as "child_obj_id",
+		a.file_suffix as "file_suffix",
+		a.source as "source",
+		a.order_by as "order_by",
+		a.remark as "remark",
+		a.create_time as "create_time",
+		a.update_time as "update_time"
+		from common_uploadFile a
+		where 1=1
+		<if test="obj_id != null and obj_id != ''">
+			and a.obj_id=#{obj_id}
+		</if>
+		<if test="child_obj_id != null and child_obj_id != ''">
+			and a.child_obj_id=#{child_obj_id}
+		</if>
+		<if test="source != null and source != ''">
+			and a.source like concat(#{source},'%')
+		</if>
+		<if test="is_empty_obj != null and is_empty_obj != ''">
+			and (a.obj_id is null || a.child_obj_id is null)
+		</if>
+		<if test="idList != null and idList.size > 0">
+			and id in
+			<foreach collection="idList" item="id" open="(" separator="," close=")">
+				#{id}
+			</foreach>
+		</if>
+		order by a.create_time desc
+	</select>
+
+
+	<select id="findFileInfo" parameterType="com.qingfeng.util.PageData" resultType="com.qingfeng.util.PageData">
+		select
+		a.id as "id",
+		a.name as "name",
+		a.desnames as "desnames",
+		a.file_path as "file_path",
+		a.file_type as "file_type",
+		a.file_size as "file_size",
+		a.obj_id as "obj_id",
+		a.child_obj_id as "child_obj_id",
+		a.file_suffix as "file_suffix",
+		a.source as "source",
+		a.order_by as "order_by",
+		a.remark as "remark",
+		a.create_time as "create_time",
+		a.update_time as "update_time"
+		from common_uploadFile a
+		where a.id=#{id}
+	</select>
+
+	<!--删除-->
+	<delete id="del" parameterType="String">
+		delete from common_uploadFile where obj_id in
+		<foreach collection="array" item="id" open="(" separator="," close=")">
+			#{id}
+		</foreach>
+	</delete>
+
+</mapper>

@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.qingfeng.common.dao.GraphicDao">
+
+	<!--数据权限-->
+	<sql id="authPageSql">
+		<!-- 数据权限 -->
+		<if test="(pd.auth_organize_ids == null or pd.auth_organize_ids.size == 0) and (pd.auth_user != null and pd.auth_user != '')">
+			and a.create_user=#{pd.auth_user}
+		</if>
+		<if test="pd.auth_organize_ids != null and pd.auth_organize_ids.size > 0">
+			and (a.create_user=#{pd.auth_user} or a.create_organize in
+			<foreach collection="pd.auth_organize_ids" item="organize_id" open="(" separator="," close=")">
+				#{organize_id}
+			</foreach>
+			)
+		</if>
+	</sql>
+	<sql id="authPdSql">
+		<!-- 数据权限 -->
+		<if test="(auth_organize_ids == null or auth_organize_ids.size == 0) and (auth_user != null and auth_user != '')">
+			and a.create_user=#{auth_user}
+		</if>
+		<if test="auth_organize_ids != null and auth_organize_ids.size > 0">
+			and (a.create_user=#{auth_user} or a.create_organize in
+			<foreach collection="auth_organize_ids" item="organize_id" open="(" separator="," close=")">
+				#{organize_id}
+			</foreach>
+			)
+		</if>
+	</sql>
+
+	<!--查询分页列表-->
+	<select id="findListPage" parameterType="com.qingfeng.util.Page" resultType="com.qingfeng.util.PageData">
+		select
+			a.id as "id",
+			a.type as "type",
+			a.title as "title",
+			a.intro as "intro",
+			a.content as "content",
+			a.publish_user as "publish_user",
+			a.publish_time as "publish_time",
+			a.read_num as "read_num",
+			a.status as "status",
+			a.order_by as "order_by",
+			a.remark as "remark",
+			a.create_time as "create_time",
+			a.create_user as "create_user",
+			a.create_organize as "create_organize",
+			a.update_user as "update_user",
+			a.update_time as "update_time"
+			from common_graphic a
+			where 1=1
+			<if test="pd.title != null and pd.title != ''">
+				and a.title like concat('%',concat(#{pd.title},'%'))
+			</if>
+			<if test="pd.type != null and pd.type != ''">
+				and a.type = #{pd.type}
+			</if>
+			<if test="pd.status != null and pd.status != ''">
+				and a.status = #{pd.status}
+			</if>
+			<include refid="authPageSql"></include>
+			order by a.order_by+0 asc , a.create_time desc
+	</select>
+
+    <!--查询分页数量-->
+    <select id="findListSize" parameterType="com.qingfeng.util.Page" resultType="Integer">
+        select
+        count(*)
+        from common_graphic a
+        where 1=1
+		<if test="pd.title != null and pd.title != ''">
+			and a.title like concat('%',concat(#{pd.title},'%'))
+		</if>
+		<if test="pd.type != null and pd.type != ''">
+			and a.type = #{pd.type}
+		</if>
+		<if test="pd.status != null and pd.status != ''">
+			and a.status = #{pd.status}
+		</if>
+		<include refid="authPageSql"></include>
+    </select>
+
+    <!--查询列表-->
+    <select id="findList" parameterType="com.qingfeng.util.PageData" resultType="com.qingfeng.util.PageData">
+        select
+			a.id as "id",
+			a.type as "type",
+			a.title as "title",
+			a.intro as "intro",
+			a.content as "content",
+			a.publish_user as "publish_user",
+			a.publish_time as "publish_time",
+			a.read_num as "read_num",
+			a.status as "status",
+			a.order_by as "order_by",
+			a.remark as "remark",
+			a.create_time as "create_time",
+			a.create_user as "create_user",
+			a.create_organize as "create_organize",
+			a.update_user as "update_user",
+			a.update_time as "update_time"
+			from common_graphic a
+			where 1=1
+			<if test="title != null and title != ''">
+				and a.title like concat('%',concat(#{title},'%'))
+			</if>
+			<if test="type != null and type != ''">
+				and a.type = #{type}
+			</if>
+			<if test="status != null and status != ''">
+				and a.status = #{status}
+			</if>
+			<include refid="authPdSql"></include>
+			order by a.order_by+0 asc , a.create_time desc
+    </select>
+	
+	<!--查询详情-->
+	<select id="findInfo" parameterType="com.qingfeng.util.PageData" resultType="com.qingfeng.util.PageData">
+		select
+			a.id as "id",
+			a.type as "type",
+			a.title as "title",
+			a.intro as "intro",
+			a.content as "content",
+			a.publish_user as "publish_user",
+			a.publish_time as "publish_time",
+			a.read_num as "read_num",
+			a.status as "status",
+			a.order_by as "order_by",
+			a.remark as "remark",
+			a.create_time as "create_time",
+			a.create_user as "create_user",
+			a.create_organize as "create_organize",
+			a.update_user as "update_user",
+			a.update_time as "update_time"
+			from common_graphic a
+			where a.id=#{id}
+	</select>
+	
+	<!--保存-->
+	<insert id="save" parameterType="com.qingfeng.util.PageData">
+		insert into common_graphic (id,type,title,intro,content,publish_user,publish_time,read_num,status,order_by,remark,create_time,create_user,create_organize,update_user,update_time)
+			values
+			(#{id},#{type,jdbcType=VARCHAR},#{title,jdbcType=VARCHAR},#{intro,jdbcType=VARCHAR},#{content,jdbcType=VARCHAR},#{publish_user,jdbcType=VARCHAR},#{publish_time,jdbcType=VARCHAR},#{read_num,jdbcType=VARCHAR},#{status,jdbcType=VARCHAR},#{order_by,jdbcType=VARCHAR},#{remark,jdbcType=VARCHAR},#{create_time,jdbcType=VARCHAR},#{create_user,jdbcType=VARCHAR},#{create_organize,jdbcType=VARCHAR},#{update_user,jdbcType=VARCHAR},#{update_time,jdbcType=VARCHAR})
+	</insert>
+	
+	<!--更新-->
+	<update id="update" parameterType="com.qingfeng.util.PageData">
+		update common_graphic set
+			<if test="type != null">type=#{type},</if>
+			<if test="title != null">title=#{title},</if>
+			<if test="intro != null">intro=#{intro},</if>
+			<if test="content != null">content=#{content},</if>
+			<if test="publish_user != null">publish_user=#{publish_user},</if>
+			<if test="publish_time != null">publish_time=#{publish_time},</if>
+			<if test="read_num != null">read_num=#{read_num},</if>
+			<if test="status != null">status=#{status},</if>
+			<if test="order_by != null">order_by=#{order_by},</if>
+			<if test="remark != null">remark=#{remark},</if>
+			<if test="update_user != null">update_user=#{update_user},</if>
+			update_time=#{update_time}
+			where id=#{id}
+	</update>
+	
+    <!--删除-->
+    <delete id="del" parameterType="String">
+        delete from common_graphic where id in
+        <foreach collection="array" item="id" open="(" separator="," close=")">
+			#{id}
+        </foreach>
+    </delete>
+
+
+</mapper>

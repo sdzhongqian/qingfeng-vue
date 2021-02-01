@@ -1,0 +1,233 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.qingfeng.system.dao.AreaDao">
+
+	<!--数据权限-->
+	<sql id="authPageSql">
+		<!-- 数据权限 -->
+		<if test="(pd.auth_organize_ids == null or pd.auth_organize_ids.size == 0) and (pd.auth_user != null and pd.auth_user != '')">
+			and a.create_user=#{pd.auth_user}
+		</if>
+		<if test="pd.auth_organize_ids != null and pd.auth_organize_ids.size > 0">
+			and (a.create_user=#{pd.auth_user} or a.create_organize in
+			<foreach collection="pd.auth_organize_ids" item="organize_id" open="(" separator="," close=")">
+				#{organize_id}
+			</foreach>
+			)
+		</if>
+	</sql>
+	<sql id="authPdSql">
+		<!-- 数据权限 -->
+		<if test="(auth_organize_ids == null or auth_organize_ids.size == 0) and (auth_user != null and auth_user != '')">
+			and a.create_user=#{auth_user}
+		</if>
+		<if test="auth_organize_ids != null and auth_organize_ids.size > 0">
+			and (a.create_user=#{auth_user} or a.create_organize in
+			<foreach collection="auth_organize_ids" item="organize_id" open="(" separator="," close=")">
+				#{organize_id}
+			</foreach>
+			)
+		</if>
+	</sql>
+
+	<!--查询分页列表-->
+	<select id="findListPage" parameterType="com.qingfeng.util.Page" resultType="com.qingfeng.util.PageData">
+		select
+			a.id as "id",
+			a.type as "type",
+			a.area_cascade as "area_cascade",
+			a.name as "name",
+			a.short_name as "short_name",
+			a.parent_id as "parent_id",
+			a.level_num as "level_num",
+			a.en_name as "en_name",
+			a.en_short_name as "en_short_name",
+			a.lng as "lng",
+			a.lat as "lat",
+			a.status as "status",
+			a.order_by as "order_by",
+			a.remark as "remark",
+			a.create_time as "create_time",
+			a.create_user as "create_user",
+			a.create_organize as "create_organize",
+			a.update_user as "update_user",
+			a.update_time as "update_time"
+			from system_area a
+			where 1=1
+			<if test="pd.name != null and pd.name != ''">
+				and a.name like concat('%',concat(#{pd.name},'%'))
+			</if>
+			<if test="pd.short_name != null and pd.short_name != ''">
+				and a.short_name like concat('%',concat(#{pd.short_name},'%'))
+			</if>
+			<if test="pd.area_cascade != null and pd.area_cascade != ''">
+				and a.area_cascade like concat('%',concat(#{pd.area_cascade},'%'))
+			</if>
+			<if test="pd.parent_id != null and pd.parent_id != ''">
+				and a.parent_id = #{pd.parent_id}
+			</if>
+			<if test="pd.type != null and pd.type != ''">
+				and a.type = #{pd.type}
+			</if>
+			<if test="pd.status != null and pd.status != ''">
+				and a.status = #{pd.status}
+			</if>
+			<if test="pd.level_num != null and pd.level_num != ''">
+				and a.level_num <![CDATA[ <= ]]> #{pd.level_num}
+			</if>
+			<include refid="authPageSql"></include>
+			order by a.order_by+0 asc , a.create_time desc
+	</select>
+	
+
+    <!--查询分页数量-->
+    <select id="findListSize" parameterType="com.qingfeng.util.Page" resultType="Integer">
+        select
+        count(*)
+        from system_area a
+        where 1=1
+		<if test="pd.name != null and pd.name != ''">
+			and a.name like concat('%',concat(#{pd.name},'%'))
+		</if>
+		<if test="pd.short_name != null and pd.short_name != ''">
+			and a.short_name like concat('%',concat(#{pd.short_name},'%'))
+		</if>
+		<if test="pd.area_cascade != null and pd.area_cascade != ''">
+			and a.area_cascade like concat('%',concat(#{pd.area_cascade},'%'))
+		</if>
+		<if test="pd.parent_id != null and pd.parent_id != ''">
+			and a.parent_id = #{pd.parent_id}
+		</if>
+		<if test="pd.type != null and pd.type != ''">
+			and a.type = #{pd.type}
+		</if>
+		<if test="pd.status != null and pd.status != ''">
+			and a.status = #{pd.status}
+		</if>
+		<if test="pd.level_num != null and pd.level_num != ''">
+			and a.level_num <![CDATA[ <= ]]> #{pd.level_num}
+		</if>
+		<include refid="authPageSql"></include>
+    </select>
+
+    <!--查询列表-->
+    <select id="findList" parameterType="com.qingfeng.util.PageData" resultType="com.qingfeng.util.PageData">
+        select
+			a.id as "id",
+			a.type as "type",
+			a.area_cascade as "area_cascade",
+			a.name as "name",
+			a.short_name as "short_name",
+			a.parent_id as "parent_id",
+			a.level_num as "level_num",
+			a.en_name as "en_name",
+			a.en_short_name as "en_short_name",
+			a.lng as "lng",
+			a.lat as "lat",
+			a.status as "status",
+			a.order_by as "order_by",
+			a.remark as "remark",
+			a.create_time as "create_time",
+			a.create_user as "create_user",
+			a.create_organize as "create_organize",
+			a.update_user as "update_user",
+			a.update_time as "update_time",
+			b.name as "parent_name"
+			from system_area a
+			left join system_area b on a.parent_id=b.id
+			where 1=1
+			<if test="name != null and name != ''">
+				and a.name like concat('%',concat(#{name},'%'))
+			</if>
+			<if test="area_cascade != null and area_cascade != ''">
+				and a.area_cascade like concat('%',concat(#{area_cascade},'%'))
+			</if>
+			<if test="short_name != null and short_name != ''">
+				and a.short_name like concat('%',concat(#{short_name},'%'))
+			</if>
+			<if test="parent_id != null and parent_id != ''">
+				and a.parent_id = #{parent_id}
+			</if>
+			<if test="type != null and type != ''">
+				and a.type = #{type}
+			</if>
+			<if test="level_num != null and level_num != ''">
+				and a.level_num <![CDATA[ <= ]]> #{level_num}
+			</if>
+			<include refid="authPdSql"></include>
+        	order by a.create_time desc
+    </select>
+	
+	<!--查询详情-->
+	<select id="findInfo" parameterType="com.qingfeng.util.PageData" resultType="com.qingfeng.util.PageData">
+		select
+			a.id as "id",
+			a.type as "type",
+			a.area_cascade as "area_cascade",
+			a.name as "name",
+			a.short_name as "short_name",
+			a.parent_id as "parent_id",
+			a.level_num as "level_num",
+			a.en_name as "en_name",
+			a.en_short_name as "en_short_name",
+			a.lng as "lng",
+			a.lat as "lat",
+			a.status as "status",
+			a.order_by as "order_by",
+			a.remark as "remark",
+			a.create_time as "create_time",
+			a.create_user as "create_user",
+			a.create_organize as "create_organize",
+			a.update_user as "update_user",
+			a.update_time as "update_time",
+			b.name as "parent_name"
+			from system_area a
+			left join system_area b on a.parent_id=b.id
+			where a.id=#{id}
+	</select>
+	
+	<!--保存-->
+	<insert id="save" parameterType="com.qingfeng.util.PageData">
+		insert into system_area (id,type,area_cascade,name,short_name,parent_id,level_num,en_name,en_short_name,lng,lat,status,order_by,remark,create_time,create_user,create_organize,update_user,update_time)
+			values
+			(#{id},#{type,jdbcType=VARCHAR},#{area_cascade,jdbcType=VARCHAR},#{name,jdbcType=VARCHAR},#{short_name,jdbcType=VARCHAR},#{parent_id,jdbcType=VARCHAR},#{level_num,jdbcType=VARCHAR},#{en_name,jdbcType=VARCHAR},#{en_short_name,jdbcType=VARCHAR},#{lng,jdbcType=VARCHAR},#{lat,jdbcType=VARCHAR},#{status,jdbcType=VARCHAR},#{order_by,jdbcType=VARCHAR},#{remark,jdbcType=VARCHAR},#{create_time,jdbcType=VARCHAR},#{create_user,jdbcType=VARCHAR},#{create_organize,jdbcType=VARCHAR},#{update_user,jdbcType=VARCHAR},#{update_time,jdbcType=VARCHAR})
+	</insert>
+	
+	<!--更新-->
+	<update id="update" parameterType="com.qingfeng.util.PageData">
+		update system_area set
+			<if test="type != null">type=#{type},</if>
+			<if test="area_cascade != null">area_cascade=#{area_cascade},</if>
+			<if test="name != null">name=#{name},</if>
+			<if test="short_name != null">short_name=#{short_name},</if>
+			<if test="parent_id != null">parent_id=#{parent_id},</if>
+			<if test="level_num != null">level_num=#{level_num},</if>
+			<if test="en_name != null">en_name=#{en_name},</if>
+			<if test="en_short_name != null">en_short_name=#{en_short_name},</if>
+			<if test="lng != null">lng=#{lng},</if>
+			<if test="lat != null">lat=#{lat},</if>
+			<if test="status != null">status=#{status},</if>
+			<if test="order_by != null">order_by=#{order_by},</if>
+			<if test="remark != null">remark=#{remark},</if>
+			<if test="update_user != null">update_user=#{update_user},</if>
+			update_time=#{update_time}
+			where id=#{id}
+	</update>
+	
+
+	<delete id="del" parameterType="String">
+		delete from system_area where id in (
+			select a.id from (
+			<foreach collection="array" item="id" open="(" separator="union all" close=")">select id from system_area
+				where area_cascade like
+				concat('%',concat((select a.area_cascade from (select id,area_cascade from system_area) a where a.id
+				in (
+				#{id}
+				) ),'%'))
+			</foreach>
+			) a
+		)
+	</delete>
+
+</mapper>

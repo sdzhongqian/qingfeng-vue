@@ -1,0 +1,226 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.qingfeng.system.dao.GroupDao">
+
+	<!--数据权限-->
+	<sql id="authPageSql">
+		<!-- 数据权限 -->
+		<if test="(pd.auth_organize_ids == null or pd.auth_organize_ids.size == 0) and (pd.auth_user != null and pd.auth_user != '')">
+			and a.create_user=#{pd.auth_user}
+		</if>
+		<if test="pd.auth_organize_ids != null and pd.auth_organize_ids.size > 0">
+			and (a.create_user=#{pd.auth_user} or a.create_organize in
+			<foreach collection="pd.auth_organize_ids" item="organize_id" open="(" separator="," close=")">
+				#{organize_id}
+			</foreach>
+			)
+		</if>
+	</sql>
+	<sql id="authPdSql">
+		<!-- 数据权限 -->
+		<if test="(auth_organize_ids == null or auth_organize_ids.size == 0) and (auth_user != null and auth_user != '')">
+			and a.create_user=#{auth_user}
+		</if>
+		<if test="auth_organize_ids != null and auth_organize_ids.size > 0">
+			and (a.create_user=#{auth_user} or a.create_organize in
+			<foreach collection="auth_organize_ids" item="organize_id" open="(" separator="," close=")">
+				#{organize_id}
+			</foreach>
+			)
+		</if>
+	</sql>
+
+	<!--查询分页列表-->
+	<select id="findListPage" parameterType="com.qingfeng.util.Page" resultType="com.qingfeng.util.PageData">
+		select
+			a.id as "id",
+			a.type as "type",
+			a.name as "name",
+			a.short_name as "short_name",
+			a.status as "status",
+			a.order_by as "order_by",
+			a.remark as "remark",
+			a.create_time as "create_time",
+			a.create_user as "create_user",
+			a.create_organize as "create_organize",
+			a.update_user as "update_user",
+			a.update_time as "update_time"
+			from system_group a
+			where 1=1
+			<if test="pd.name != null and pd.name != ''">
+				and a.name like concat('%',concat(#{pd.name},'%'))
+			</if>
+			<if test="pd.short_name != null and pd.short_name != ''">
+				and a.short_name like concat('%',concat(#{pd.short_name},'%'))
+			</if>
+			<if test="pd.type != null and pd.type != ''">
+				and a.type = #{pd.type}
+			</if>
+			<if test="pd.status != null and pd.status != ''">
+				and a.status = #{pd.status}
+			</if>
+			<include refid="authPageSql"></include>
+			order by a.order_by+0 asc , a.create_time desc
+	</select>
+
+    <!--查询分页数量-->
+    <select id="findListSize" parameterType="com.qingfeng.util.Page" resultType="Integer">
+        select
+        count(*)
+        from system_group a
+        where 1=1
+		<if test="pd.name != null and pd.name != ''">
+			and a.name like concat('%',concat(#{pd.name},'%'))
+		</if>
+		<if test="pd.short_name != null and pd.short_name != ''">
+			and a.short_name like concat('%',concat(#{pd.short_name},'%'))
+		</if>
+		<if test="pd.type != null and pd.type != ''">
+			and a.type = #{pd.type}
+		</if>
+		<if test="pd.status != null and pd.status != ''">
+			and a.status = #{pd.status}
+		</if>
+		<include refid="authPageSql"></include>
+    </select>
+
+    <!--查询列表-->
+    <select id="findList" parameterType="com.qingfeng.util.PageData" resultType="com.qingfeng.util.PageData">
+        select
+			a.id as "id",
+			a.type as "type",
+			a.name as "name",
+			a.short_name as "short_name",
+			a.status as "status",
+			a.order_by as "order_by",
+			a.remark as "remark",
+			a.create_time as "create_time",
+			a.create_user as "create_user",
+			a.create_organize as "create_organize",
+			a.update_user as "update_user",
+			a.update_time as "update_time"
+			from system_group a
+			where 1=1
+			<if test="name != null and name != ''">
+				and a.name like concat('%',concat(#{name},'%'))
+			</if>
+			<if test="short_name != null and short_name != ''">
+				and a.short_name like concat('%',concat(#{short_name},'%'))
+			</if>
+			<if test="type != null and type != ''">
+				and a.type = #{type}
+			</if>
+			<if test="status != null and status != ''">
+				and a.status = #{status}
+			</if>
+			<include refid="authPdSql"></include>
+			order by a.order_by+0 asc , a.create_time desc
+    </select>
+	
+	<!--查询详情-->
+	<select id="findInfo" parameterType="com.qingfeng.util.PageData" resultType="com.qingfeng.util.PageData">
+		select
+			a.id as "id",
+			a.type as "type",
+			a.name as "name",
+			a.short_name as "short_name",
+			a.status as "status",
+			a.order_by as "order_by",
+			a.remark as "remark",
+			a.create_time as "create_time",
+			a.create_user as "create_user",
+			a.create_organize as "create_organize",
+			a.update_user as "update_user",
+			a.update_time as "update_time"
+			from system_group a
+			where a.id=#{id}
+	</select>
+	
+	<!--保存-->
+	<insert id="save" parameterType="com.qingfeng.util.PageData">
+		insert into system_group (id,type,name,short_name,status,order_by,remark,create_time,create_user,create_organize,update_user,update_time)
+			values
+			(#{id},#{type,jdbcType=VARCHAR},#{name,jdbcType=VARCHAR},#{short_name,jdbcType=VARCHAR},#{status,jdbcType=VARCHAR},#{order_by,jdbcType=VARCHAR},#{remark,jdbcType=VARCHAR},#{create_time,jdbcType=VARCHAR},#{create_user,jdbcType=VARCHAR},#{create_organize,jdbcType=VARCHAR},#{update_user,jdbcType=VARCHAR},#{update_time,jdbcType=VARCHAR})
+	</insert>
+	
+	<!--更新-->
+	<update id="update" parameterType="com.qingfeng.util.PageData">
+		update system_group set
+			<if test="type != null">type=#{type},</if>
+			<if test="name != null">name=#{name},</if>
+			<if test="short_name != null">short_name=#{short_name},</if>
+			<if test="status != null">status=#{status},</if>
+			<if test="order_by != null">order_by=#{order_by},</if>
+			<if test="remark != null">remark=#{remark},</if>
+			<if test="update_user != null">update_user=#{update_user},</if>
+			update_time=#{update_time}
+			where id=#{id}
+	</update>
+	
+    <!--删除-->
+    <delete id="del" parameterType="String">
+        delete from system_group where id in
+        <foreach collection="array" item="id" open="(" separator="," close=")">
+			#{id}
+        </foreach>
+    </delete>
+
+
+
+	<!--用户组用户信息-->
+	<insert id="saveGroupUser" parameterType="com.qingfeng.util.PageData">
+		insert into system_user_group (id,user_id,group_id,create_user,create_time,update_time)
+		values
+		(#{id},#{user_id,jdbcType=VARCHAR},#{group_id,jdbcType=VARCHAR},#{create_user,jdbcType=VARCHAR},#{create_time,jdbcType=VARCHAR},#{update_time,jdbcType=VARCHAR})
+	</insert>
+
+	<!--查询组用户信息-->
+	<select id="findGroupUser" parameterType="com.qingfeng.util.PageData" resultType="com.qingfeng.util.PageData">
+		select
+		a.id as "id",
+		a.user_id as "user_id",
+		a.group_id as "group_id",
+		a.create_user as "create_user",
+		a.create_time as "create_time",
+		a.update_time as "update_time",
+		b.name as "user_name"
+		from system_user_group a
+		left join system_user b on a.user_id = b.id
+		where 1=1
+		<if test="user_id != null and user_id != ''">
+			and a.user_id = #{user_id}
+		</if>
+		<if test="group_id != null and group_id != ''">
+			and a.group_id = #{group_id}
+		</if>
+		order by a.create_time desc
+	</select>
+
+	<!--删除用户组织信息-->
+	<delete id="delGroupUser" parameterType="com.qingfeng.util.PageData">
+		delete from system_user_group where
+		<if test="id != null and id != ''">
+			id = #{id}
+		</if>
+		<if test="user_id != null and user_id != ''">
+			user_id = #{user_id}
+		</if>
+		<if test="group_id != null and group_id != ''">
+			group_id = #{group_id}
+		</if>
+	</delete>
+
+	<!--更新用户组织信息-->
+	<update id="updateGroupUser" parameterType="com.qingfeng.util.PageData">
+		update system_user_group set
+		<if test="user_id != null">user_id=#{user_id},</if>
+		<if test="organize_id != null">group_id=#{group_id},</if>
+		update_time=#{update_time}
+		where id=#{id}
+	</update>
+
+
+
+
+</mapper>
