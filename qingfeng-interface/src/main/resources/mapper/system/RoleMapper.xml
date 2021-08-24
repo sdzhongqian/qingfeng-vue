@@ -194,6 +194,12 @@
 				#{id}
 			</foreach>
 		</if>
+		<if test="del_menu_ids != null and del_menu_ids.size > 0">
+			and menu_id in
+			<foreach collection="del_menu_ids" item="id" open="(" separator="," close=")">
+				#{id}
+			</foreach>
+		</if>
 	</delete>
 
 
